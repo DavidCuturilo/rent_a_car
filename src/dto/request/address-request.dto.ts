@@ -5,4 +5,5 @@ export class AddressRequestDto {
   ulica: string;
   broj: number;
   nazivGrada?: string;
+  nazivDrzave?: string;
 }

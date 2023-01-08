@@ -7,6 +7,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Post,
   Put,
   UseInterceptors,
@@ -32,11 +33,11 @@ export class CommunitiesController {
     return await this.communitiesService.updateAddressById(address);
   }
 
-  @Delete('deleteAddressById')
+  @Delete('deleteAddressById/:adresaID')
   async deleteAddressById(
-    @Body() address: Omit<AddressRequestDto, 'ulica' | 'broj'>,
+    @Param('adresaID') adresaID: Pick<AddressRequestDto, 'adresaID'>,
   ) {
-    return await this.communitiesService.deleteAddressById(address);
+    return await this.communitiesService.deleteAddressById(adresaID);
   }
 
   @Get('allGrad')
@@ -54,8 +55,10 @@ export class CommunitiesController {
     return await this.communitiesService.updateGradById(grad);
   }
 
-  @Delete('deleteGradById')
-  async deleteGradById(@Body() grad: GradRequestDto) {
-    return await this.communitiesService.deleteGradById(grad);
+  @Delete('deleteGradById/:gradID')
+  async deleteGradById(
+    @Param('gradID') gradID: Pick<GradRequestDto, 'gradID'>,
+  ) {
+    return await this.communitiesService.deleteGradById(gradID);
   }
 }
