@@ -1,3 +1,4 @@
+import { VoziloRequestDto } from './../dto/request/vozilo-request.dto';
 import { ZahtevRequestDto } from './../dto/request/zahtev-request.dto';
 import { GradRequestDto } from './../dto/request/grad-request.dto';
 import { AddressRequestDto } from './../dto/request/address-request.dto';
@@ -283,6 +284,50 @@ export class CommunitiesService {
           `Can't delete zahtev, its being referenced`,
         );
       return new BadRequestException('Error while deleting zahtev!');
+    }
+  }
+
+  async getAllVozilo() {
+    try {
+      const query = `SELECT "registarski_broj", model, marka, (pogon).tip_goriva, (pogon).jacina_motora, kilometraza, "datumistekaregistracije" FROM vozilo;`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all vozila');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting vozila');
+    }
+  }
+
+  async insertVozilo(vozilo: VoziloRequestDto) {
+    try {
+      const query = `INSERT INTO vozilo("registarski_broj", "model", marka, pogon, kilometraza, datumistekaregistracije) VALUES($1,$2,$3,ROW($4,$5),$6,$7);`;
+      const updatedRows = await db.query(query, [
+        vozilo.registarski_broj,
+        vozilo.model,
+        vozilo.marka,
+        vozilo.tip_goriva,
+        vozilo.jacina_motora,
+        vozilo.kilometraza,
+        new Date(vozilo.datumistekaregistracije),
+      ]);
+      if (updatedRows.rowCount > 0)
+        return { message: 'Vozilo successfully inserted.' };
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while inserting vozilo!');
+    }
+  }
+
+  async getVoziloByMarka(marka: string) {
+    try {
+      const query = `SELECT "registarski_broj", model, marka, (pogon).tip_goriva, (pogon).jacina_motora, kilometraza, "datumistekaregistracije" FROM vozilo WHERE marka=$1;`;
+      const db_response = await db.query(query, [marka]);
+      console.log('Successfully got searched vozila');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting vozila');
     }
   }
 }

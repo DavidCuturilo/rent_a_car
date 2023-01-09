@@ -1,3 +1,4 @@
+import { VoziloRequestDto } from './../dto/request/vozilo-request.dto';
 import { ZahtevRequestDto } from './../dto/request/zahtev-request.dto';
 import { GradRequestDto } from './../dto/request/grad-request.dto';
 import { AddressRequestDto } from './../dto/request/address-request.dto';
@@ -96,5 +97,20 @@ export class CommunitiesController {
     @Param('zahtevID') zahtevID: Pick<ZahtevRequestDto, 'zahtevID'>,
   ) {
     return await this.communitiesService.deleteZahtevById(zahtevID);
+  }
+
+  @Get('allVozilo')
+  async getAllVozilo() {
+    return await this.communitiesService.getAllVozilo();
+  }
+
+  @Post('insertVozilo')
+  async insertVozilo(@Body() vozilo: VoziloRequestDto) {
+    return await this.communitiesService.insertVozilo(vozilo);
+  }
+
+  @Get('vozilaByMarka/:marka')
+  async getVoziloByMarka(@Param('marka') marka: string) {
+    return await this.communitiesService.getVoziloByMarka(marka);
   }
 }
