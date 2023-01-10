@@ -1,3 +1,4 @@
+import { OstecenjeRequestDto } from './../dto/request/ostecenje-request.dto';
 import { UgovorRequestDto } from './../dto/request/ugovor-request.dto';
 import { RacunRequestDto } from './../dto/request/racun-request.dto';
 import { VoziloRequestDto } from './../dto/request/vozilo-request.dto';
@@ -454,7 +455,6 @@ export class CommunitiesService {
     try {
       const query = `SELECT r."racunID",r."brojRacuna", r."datumIzdavanja", r."datumPrometa", r."datumStampe", r."datumDospeca", r."vrstaPlacanja", rd."imePrezimeRadnika" FROM racun_ranije_godine r JOIN radnik rd ON r."radnikID" = rd."radnikID";`;
       const db_response = await db.query(query);
-      console.log('Successfully got all racuni');
       return db_response.rows;
     } catch (error) {
       console.log(error);
@@ -466,7 +466,6 @@ export class CommunitiesService {
     try {
       const query = `SELECT * FROM drzava;`;
       const db_response = await db.query(query);
-      console.log('Successfully got all drzave');
       return db_response.rows;
     } catch (error) {
       console.log(error);
@@ -478,7 +477,6 @@ export class CommunitiesService {
     try {
       const query = `SELECT p."ponudaID", p."datumUnosa", p."datumStampe", p."datumIsteka", p."iznosFransize", p.broj, z.naslov, r."imePrezimeRadnika", k."imePrezimeKlijenta" FROM ponuda p JOIN zahtev z ON p."zahtevID" = z."zahtevID" JOIN radnik r ON p."radnikID" = r."radnikID" JOIN klijent k ON p."klijentID" = k."klijentID" WHERE p."ponudaID" = $1;`;
       const db_response = await db.query(query, [ponudaID]);
-      console.log('Successfully got searched ponude');
       return db_response.rows;
     } catch (error) {
       console.log(error);
@@ -598,6 +596,58 @@ export class CommunitiesService {
           `Can't delete ugovor, its being referenced`,
         );
       return new BadRequestException('Error while deleting ugovor!');
+    }
+  }
+
+  async getAllOstecenja() {
+    try {
+      const query = `SELECT o.*, r."imePrezimeRadnika", u."redniBrojUgovora" FROM ostecenja o JOIN radnik r ON o."radnikID" = r."radnikID" JOIN ugovor u ON o."ugovorID" = u."ugovorID";`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all ostecenja');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting ostecenja');
+    }
+  }
+
+  async updateOstecenjeById(ostecenje: OstecenjeRequestDto) {
+    try {
+      const queryRadnik = `SELECT * FROM radnik WHERE "imePrezimeRadnika"=$1;`;
+      const { radnikID } = (
+        await db.query(queryRadnik, [ostecenje.imePrezimeRadnika])
+      ).rows[0];
+
+      const queryUgovor = `SELECT * FROM ugovor WHERE "redniBrojUgovora"=$1;`;
+      const { ugovorID } = (
+        await db.query(queryUgovor, [ostecenje.redniBrojUgovora])
+      ).rows[0];
+
+      if (ostecenje.ostecenjaID) {
+        const query = `UPDATE ostecenja SET "obavestenje"=$1, "tipOstecenja"=$2, "radnikID"=$3, "ugovorID" = $4 WHERE "ostecenjaID"=$5;`;
+        const updatedRows = await db.query(query, [
+          ostecenje.obavestenje,
+          ostecenje.tipOstecenja,
+          radnikID,
+          ugovorID,
+          ostecenje.ostecenjaID,
+        ]);
+        if (updatedRows.rowCount > 0)
+          return { message: 'Ostecenje successfully updated.' };
+      } else {
+        const query = `INSERT INTO ostecenja ("obavestenje", "tipOstecenja","radnikID","ugovorID") VALUES($1,$2,$3,$4);`;
+        const updatedRows = await db.query(query, [
+          ostecenje.obavestenje,
+          ostecenje.tipOstecenja,
+          radnikID,
+          ugovorID,
+        ]);
+        if (updatedRows.rowCount > 0)
+          return { message: 'Ostecenje successfully inserted.' };
+      }
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while saving ostecenje!');
     }
   }
 }

@@ -1,3 +1,4 @@
+import { OstecenjeRequestDto } from './../dto/request/ostecenje-request.dto';
 import { UgovorRequestDto } from './../dto/request/ugovor-request.dto';
 import { RacunRequestDto } from './../dto/request/racun-request.dto';
 import { VoziloRequestDto } from './../dto/request/vozilo-request.dto';
@@ -198,5 +199,15 @@ export class CommunitiesController {
     @Param('ugovorID') ugovorID: Pick<UgovorRequestDto, 'ugovorID'>,
   ) {
     return await this.communitiesService.deleteUgovorById(ugovorID);
+  }
+
+  @Get('allOstecenja')
+  async getAllOstecenja() {
+    return await this.communitiesService.getAllOstecenja();
+  }
+
+  @Put('updateOstecenjeById')
+  async updateOstecenjeById(@Body() ostecenje: OstecenjeRequestDto) {
+    return await this.communitiesService.updateOstecenjeById(ostecenje);
   }
 }
