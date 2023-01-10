@@ -1,3 +1,4 @@
+import { RacunRequestDto } from './../dto/request/racun-request.dto';
 import { VoziloRequestDto } from './../dto/request/vozilo-request.dto';
 import { ZahtevRequestDto } from './../dto/request/zahtev-request.dto';
 import { GradRequestDto } from './../dto/request/grad-request.dto';
@@ -112,5 +113,52 @@ export class CommunitiesController {
   @Get('vozilaByMarka/:marka')
   async getVoziloByMarka(@Param('marka') marka: string) {
     return await this.communitiesService.getVoziloByMarka(marka);
+  }
+
+  @Get('allRacun')
+  async getAllRacuni() {
+    return await this.communitiesService.getAllRacuni();
+  }
+
+  @Get('allRadnik')
+  async getAllRadnik() {
+    return await this.communitiesService.getAllRadnik();
+  }
+
+  @Get('allKlijent')
+  async getAllKlijent() {
+    return await this.communitiesService.getAllKlijent();
+  }
+
+  @Put('updateRacunById')
+  async updateRacunById(@Body() racun: RacunRequestDto) {
+    return await this.communitiesService.updateRacunById(racun);
+  }
+
+  @Delete('deleteRacunById/:racunID')
+  async deleteRacunById(
+    @Param('racunID') racunID: Pick<RacunRequestDto, 'racunID'>,
+  ) {
+    return await this.communitiesService.deleteRacunById(racunID);
+  }
+
+  @Get('allRacunTekuceGodine')
+  async getAllTekuciRacuni() {
+    return await this.communitiesService.getAllTekuciRacuni();
+  }
+
+  @Get('allRacunPrethodneGodine')
+  async getAllPrethodniRacuni() {
+    return await this.communitiesService.getAllPrethodniRacuni();
+  }
+
+  @Get('allRacunRanijihGodina')
+  async getAllRanijiRacuni() {
+    return await this.communitiesService.getAllRanijiRacuni();
+  }
+
+  @Get('allDrzava')
+  async getAllDrzave() {
+    return await this.communitiesService.getAllDrzave();
   }
 }

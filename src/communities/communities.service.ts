@@ -1,3 +1,4 @@
+import { RacunRequestDto } from './../dto/request/racun-request.dto';
 import { VoziloRequestDto } from './../dto/request/vozilo-request.dto';
 import { ZahtevRequestDto } from './../dto/request/zahtev-request.dto';
 import { GradRequestDto } from './../dto/request/grad-request.dto';
@@ -328,6 +329,147 @@ export class CommunitiesService {
     } catch (error) {
       console.log(error);
       return new BadRequestException('Error while getting vozila');
+    }
+  }
+
+  async getAllRacuni() {
+    try {
+      const query = `SELECT r."racunID",r."brojRacuna", r."datumIzdavanja", r."datumPrometa", r."datumStampe", r."datumDospeca", r."vrstaPlacanja", rd."imePrezimeRadnika" FROM racun r JOIN radnik rd ON r."radnikID" = rd."radnikID";`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all racuni');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting racuni');
+    }
+  }
+
+  async getAllRadnik() {
+    try {
+      const query = `SELECT * FROM radnik;`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all radnici');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting radnici');
+    }
+  }
+
+  async getAllKlijent() {
+    try {
+      const query = `SELECT * FROM klijent;`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all klijenti');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting klijenti');
+    }
+  }
+
+  async updateRacunById(racun: RacunRequestDto) {
+    try {
+      const queryRadnik = `SELECT * FROM radnik WHERE "imePrezimeRadnika"=$1;`;
+      const { radnikID } = (
+        await db.query(queryRadnik, [racun.imePrezimeRadnika])
+      ).rows[0];
+
+      if (racun.racunID) {
+        const query = `UPDATE racun SET "radnikID"=$1, "brojRacuna"=$2, "datumIzdavanja"=$3, "datumPrometa" = $4, "datumStampe"=$5,"datumDospeca" = $6, "vrstaPlacanja"=$7 WHERE "racunID"=$8;`;
+        const updatedRows = await db.query(query, [
+          radnikID,
+          racun.brojRacuna,
+          new Date(racun.datumIzdavanja),
+          new Date(racun.datumPrometa),
+          new Date(racun.datumStampe),
+          new Date(racun.datumDospeca),
+          racun.vrstaPlacanja,
+          racun.racunID,
+        ]);
+        if (updatedRows.rowCount > 0)
+          return { message: 'Racun successfully updated.' };
+      } else {
+        const query = `INSERT INTO racun ("brojRacuna", "datumIzdavanja","datumPrometa","datumStampe","datumDospeca","vrstaPlacanja","radnikID") VALUES($1,$2,$3,$4,$5,$6,$7);`;
+        const updatedRows = await db.query(query, [
+          racun.brojRacuna,
+          new Date(racun.datumIzdavanja),
+          new Date(racun.datumPrometa),
+          new Date(racun.datumStampe),
+          new Date(racun.datumDospeca),
+          racun.vrstaPlacanja,
+          radnikID,
+        ]);
+        if (updatedRows.rowCount > 0)
+          return { message: 'Racun successfully inserted.' };
+      }
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while saving racun!');
+    }
+  }
+
+  async deleteRacunById(racunID: Pick<RacunRequestDto, 'racunID'>) {
+    try {
+      const query = `DELETE FROM racun WHERE "racunID"=$1;`;
+      const updatedRows = await db.query(query, [racunID]);
+      if (updatedRows.rowCount > 0)
+        return { message: `Racun successfully deleted` };
+    } catch (error) {
+      console.log(error);
+      if (error.code === '23503')
+        return new BadRequestException(
+          `Can't delete racun, its being referenced`,
+        );
+      return new BadRequestException('Error while deleting racun!');
+    }
+  }
+
+  async getAllTekuciRacuni() {
+    try {
+      const query = `SELECT r."racunID",r."brojRacuna", r."datumIzdavanja", r."datumPrometa", r."datumStampe", r."datumDospeca", r."vrstaPlacanja", rd."imePrezimeRadnika" FROM racun_tekuca_godina r JOIN radnik rd ON r."radnikID" = rd."radnikID";`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all racuni');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting racuni');
+    }
+  }
+
+  async getAllPrethodniRacuni() {
+    try {
+      const query = `SELECT r."racunID",r."brojRacuna", r."datumIzdavanja", r."datumPrometa", r."datumStampe", r."datumDospeca", r."vrstaPlacanja", rd."imePrezimeRadnika" FROM racun_prethodna_godina r JOIN radnik rd ON r."radnikID" = rd."radnikID";`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all racuni');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting racuni');
+    }
+  }
+
+  async getAllRanijiRacuni() {
+    try {
+      const query = `SELECT r."racunID",r."brojRacuna", r."datumIzdavanja", r."datumPrometa", r."datumStampe", r."datumDospeca", r."vrstaPlacanja", rd."imePrezimeRadnika" FROM racun_ranije_godine r JOIN radnik rd ON r."radnikID" = rd."radnikID";`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all racuni');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting racuni');
+    }
+  }
+
+  async getAllDrzave() {
+    try {
+      const query = `SELECT * FROM drzava;`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all drzave');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting drzave');
     }
   }
 }
