@@ -1,3 +1,4 @@
+import { UgovorRequestDto } from './../dto/request/ugovor-request.dto';
 import { RacunRequestDto } from './../dto/request/racun-request.dto';
 import { VoziloRequestDto } from './../dto/request/vozilo-request.dto';
 import { ZahtevRequestDto } from './../dto/request/zahtev-request.dto';
@@ -482,6 +483,121 @@ export class CommunitiesService {
     } catch (error) {
       console.log(error);
       return new BadRequestException('Error while getting ponude');
+    }
+  }
+
+  async getAllRezervacije() {
+    try {
+      const query = `SELECT * FROM rezervacija;`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all rezervacije');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting rezervacije');
+    }
+  }
+
+  async getAllUgovori() {
+    try {
+      const query = `SELECT u.*, rd."imePrezimeRadnika", r."brojRezervacije" FROM svi_detalji_ugovora u JOIN radnik rd ON u."radnikID" = rd."radnikID" JOIN rezervacija r ON u."rezervacijaID" = r."rezervacijaID";`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all ugovori');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting ugovori');
+    }
+  }
+
+  async allBitnijiDeloviUgovora() {
+    try {
+      const query = `SELECT u."redniBrojUgovora", rd."imePrezimeRadnika", r."brojRezervacije" FROM ugovor u JOIN radnik rd ON u."radnikID" = rd."radnikID" JOIN rezervacija r ON u."rezervacijaID" = r."rezervacijaID";`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all ugovori bitniji delovi');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException(
+        'Error while getting ugovori bitniji delovi',
+      );
+    }
+  }
+
+  async allDetaljiUgovora() {
+    try {
+      const query = `SELECT * FROM ugovor_detalji;`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all ugovori detalji');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting ugovori detalji');
+    }
+  }
+
+  async updateUgovorById(ugovor: UgovorRequestDto) {
+    try {
+      const queryRadnik = `SELECT * FROM radnik WHERE "imePrezimeRadnika"=$1;`;
+      const { radnikID } = (
+        await db.query(queryRadnik, [ugovor.imePrezimeRadnika])
+      ).rows[0];
+
+      const queryRezervacija = `SELECT * FROM rezervacija WHERE "brojRezervacije"=$1;`;
+      const { rezervacijaID } = (
+        await db.query(queryRezervacija, [ugovor.brojRezervacije])
+      ).rows[0];
+
+      if (ugovor.ugovorID) {
+        const query = `UPDATE svi_detalji_ugovora SET "radnikID"=$1, "rezervacijaID"=$2, "datumUnosa"=$3, "datumStampe" = $4, "iznosFransize"=$5,"cenovnik" = $6, "depozit"=$7, "redniBrojUgovora"=$8, "obavestenje"=$9 WHERE "ugovorID"=$10;`;
+        const updatedRows = await db.query(query, [
+          radnikID,
+          rezervacijaID,
+          new Date(ugovor.datumUnosa),
+          new Date(ugovor.datumStampe),
+          ugovor.iznosFransize,
+          ugovor.cenovnik,
+          ugovor.depozit,
+          ugovor.redniBrojUgovora,
+          ugovor.obavestenje,
+          ugovor.ugovorID,
+        ]);
+        if (updatedRows.rowCount > 0)
+          return { message: 'Ugovor successfully updated.' };
+      } else {
+        const query = `INSERT INTO svi_detalji_ugovora ("redniBrojUgovora", "datumUnosa","datumStampe","iznosFransize","cenovnik", "depozit", "rezervacijaID", "radnikID", "obavestenje") VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9);`;
+        const updatedRows = await db.query(query, [
+          ugovor.redniBrojUgovora,
+          new Date(ugovor.datumUnosa),
+          new Date(ugovor.datumStampe),
+          ugovor.iznosFransize,
+          ugovor.cenovnik,
+          ugovor.depozit,
+          rezervacijaID,
+          radnikID,
+          ugovor.obavestenje,
+        ]);
+        if (updatedRows.rowCount > 0)
+          return { message: 'Ugovor successfully inserted.' };
+      }
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while saving ugovor!');
+    }
+  }
+
+  async deleteUgovorById(ugovorID: Pick<UgovorRequestDto, 'ugovorID'>) {
+    try {
+      const query = `DELETE FROM svi_detalji_ugovora WHERE "ugovorID"=$1;`;
+      await db.query(query, [ugovorID]);
+      return { message: `Ugovor successfully deleted` };
+    } catch (error) {
+      console.log(error);
+      if (error.code === '23503')
+        return new BadRequestException(
+          `Can't delete ugovor, its being referenced`,
+        );
+      return new BadRequestException('Error while deleting ugovor!');
     }
   }
 }

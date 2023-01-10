@@ -1,3 +1,4 @@
+import { UgovorRequestDto } from './../dto/request/ugovor-request.dto';
 import { RacunRequestDto } from './../dto/request/racun-request.dto';
 import { VoziloRequestDto } from './../dto/request/vozilo-request.dto';
 import { ZahtevRequestDto } from './../dto/request/zahtev-request.dto';
@@ -165,5 +166,37 @@ export class CommunitiesController {
   @Get('ponudaByID/:ponudaID')
   async getPonudaByID(@Param('ponudaID') ponudaID: number) {
     return await this.communitiesService.getPonudaByID(ponudaID);
+  }
+
+  @Get('allRezervacija')
+  async getAllRezervacije() {
+    return await this.communitiesService.getAllRezervacije();
+  }
+
+  @Get('allUgovor')
+  async getAllUgovori() {
+    return await this.communitiesService.getAllUgovori();
+  }
+
+  @Get('allBitnijiDeloviUgovora')
+  async allBitnijiDeloviUgovora() {
+    return await this.communitiesService.allBitnijiDeloviUgovora();
+  }
+
+  @Get('allDetaljiUgovora')
+  async allDetaljiUgovora() {
+    return await this.communitiesService.allDetaljiUgovora();
+  }
+
+  @Put('updateUgovorById')
+  async updateUgovorById(@Body() ugovor: UgovorRequestDto) {
+    return await this.communitiesService.updateUgovorById(ugovor);
+  }
+
+  @Delete('deleteUgovorById/:ugovorID')
+  async deleteUgovorById(
+    @Param('ugovorID') ugovorID: Pick<UgovorRequestDto, 'ugovorID'>,
+  ) {
+    return await this.communitiesService.deleteUgovorById(ugovorID);
   }
 }
