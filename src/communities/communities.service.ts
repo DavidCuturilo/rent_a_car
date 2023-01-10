@@ -472,4 +472,16 @@ export class CommunitiesService {
       return new BadRequestException('Error while getting drzave');
     }
   }
+
+  async getPonudaByID(ponudaID: number) {
+    try {
+      const query = `SELECT p."ponudaID", p."datumUnosa", p."datumStampe", p."datumIsteka", p."iznosFransize", p.broj, z.naslov, r."imePrezimeRadnika", k."imePrezimeKlijenta" FROM ponuda p JOIN zahtev z ON p."zahtevID" = z."zahtevID" JOIN radnik r ON p."radnikID" = r."radnikID" JOIN klijent k ON p."klijentID" = k."klijentID" WHERE p."ponudaID" = $1;`;
+      const db_response = await db.query(query, [ponudaID]);
+      console.log('Successfully got searched ponude');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting ponude');
+    }
+  }
 }

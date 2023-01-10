@@ -161,4 +161,9 @@ export class CommunitiesController {
   async getAllDrzave() {
     return await this.communitiesService.getAllDrzave();
   }
+
+  @Get('ponudaByID/:ponudaID')
+  async getPonudaByID(@Param('ponudaID') ponudaID: number) {
+    return await this.communitiesService.getPonudaByID(ponudaID);
+  }
 }
