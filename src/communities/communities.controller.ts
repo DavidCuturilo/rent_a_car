@@ -1,3 +1,5 @@
+import { CenaRequestDto } from './../dto/request/cena-request.dto';
+import { UslugaRequestDto } from './../dto/request/usluga-request.dto';
 import { OstecenjeRequestDto } from './../dto/request/ostecenje-request.dto';
 import { UgovorRequestDto } from './../dto/request/ugovor-request.dto';
 import { RacunRequestDto } from './../dto/request/racun-request.dto';
@@ -209,5 +211,41 @@ export class CommunitiesController {
   @Put('updateOstecenjeById')
   async updateOstecenjeById(@Body() ostecenje: OstecenjeRequestDto) {
     return await this.communitiesService.updateOstecenjeById(ostecenje);
+  }
+
+  @Get('allUsluga')
+  async getAllUsluge() {
+    return await this.communitiesService.getAllUsluge();
+  }
+
+  @Get('allCena')
+  async getAllCene() {
+    return await this.communitiesService.getAllCene();
+  }
+
+  @Put('updateUsluguById')
+  async updateUsluguById(@Body() usluga: UslugaRequestDto) {
+    return await this.communitiesService.updateUsluguById(usluga);
+  }
+
+  @Delete('deleteUsluguById/:vrstaUslugeID')
+  async deleteUsluguById(
+    @Param('vrstaUslugeID')
+    vrstaUslugeID: Pick<UslugaRequestDto, 'vrstaUslugeID'>,
+  ) {
+    return await this.communitiesService.deleteUsluguById(vrstaUslugeID);
+  }
+
+  @Put('updateCenuById')
+  async updateCenuById(@Body() cena: CenaRequestDto) {
+    return await this.communitiesService.updateCenuById(cena);
+  }
+
+  @Delete('deleteCenuById/:cenaUslugeID')
+  async deleteCenuById(
+    @Param('cenaUslugeID')
+    cenaUslugeID: Pick<CenaRequestDto, 'cenaUslugeID'>,
+  ) {
+    return await this.communitiesService.deleteCenuById(cenaUslugeID);
   }
 }

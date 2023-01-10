@@ -1,3 +1,5 @@
+import { CenaRequestDto } from './../dto/request/cena-request.dto';
+import { UslugaRequestDto } from './../dto/request/usluga-request.dto';
 import { OstecenjeRequestDto } from './../dto/request/ostecenje-request.dto';
 import { UgovorRequestDto } from './../dto/request/ugovor-request.dto';
 import { RacunRequestDto } from './../dto/request/racun-request.dto';
@@ -189,7 +191,7 @@ export class CommunitiesService {
           ponuda.iznosFransize,
         ]);
         if (updatedRows.rowCount > 0)
-          return { message: 'ponuda successfully inserted.' };
+          return { message: 'Ponuda successfully saved.' };
       }
     } catch (error) {
       console.log(error);
@@ -648,6 +650,116 @@ export class CommunitiesService {
     } catch (error) {
       console.log(error);
       return new BadRequestException('Error while saving ostecenje!');
+    }
+  }
+
+  async getAllUsluge() {
+    try {
+      const query = `SELECT * FROM vrsta_usluge;`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all usluge');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting usluge');
+    }
+  }
+
+  async getAllCene() {
+    try {
+      const query = `SELECT c.*, v."naziv" FROM cena_usluge c JOIN vrsta_usluge v ON c."vrstaUslugeID" = v."vrstaUslugeID";`;
+      const db_response = await db.query(query);
+      console.log('Successfully got all cene');
+      return db_response.rows;
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while getting cene');
+    }
+  }
+
+  async updateUsluguById(usluga: UslugaRequestDto) {
+    try {
+      if (usluga.vrstaUslugeID) {
+        const query = `UPDATE vrsta_usluge SET "naziv"=$1 WHERE "vrstaUslugeID"=$2;`;
+        const updatedRows = await db.query(query, [
+          usluga.naziv,
+          usluga.vrstaUslugeID,
+        ]);
+        if (updatedRows.rowCount > 0)
+          return { message: 'Usluga successfully updated.' };
+      } else {
+        const query = `INSERT INTO vrsta_usluge ("naziv") VALUES($1);`;
+        const updatedRows = await db.query(query, [usluga.naziv]);
+        if (updatedRows.rowCount > 0)
+          return { message: 'Usluga successfully inserted.' };
+      }
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while saving uslugu!');
+    }
+  }
+
+  async deleteUsluguById(
+    vrstaUslugeID: Pick<UslugaRequestDto, 'vrstaUslugeID'>,
+  ) {
+    try {
+      const query = `DELETE FROM vrsta_usluge WHERE "vrstaUslugeID"=$1;`;
+      await db.query(query, [vrstaUslugeID]);
+      return { message: `Usluga successfully deleted` };
+    } catch (error) {
+      console.log(error);
+      if (error.code === '23503')
+        return new BadRequestException(
+          `Can't delete usluga, its being referenced`,
+        );
+      return new BadRequestException('Error while deleting usluga!');
+    }
+  }
+
+  async updateCenuById(cena: CenaRequestDto) {
+    try {
+      const queryUsluga = `SELECT * FROM vrsta_usluge WHERE "naziv"=$1;`;
+      const { vrstaUslugeID } = (await db.query(queryUsluga, [cena.naziv]))
+        .rows[0];
+
+      if (cena.cenaUslugeID) {
+        const query = `UPDATE cena_usluge SET "vrstaUslugeID" = $1, iznos=$2, "datumOd"=$3 WHERE "cenaUslugeID"=$4;`;
+        const updatedRows = await db.query(query, [
+          vrstaUslugeID,
+          cena.iznos,
+          new Date(cena.datumOd),
+          cena.cenaUslugeID,
+        ]);
+        if (updatedRows.rowCount > 0)
+          return { message: 'Cena successfully updated.' };
+      } else {
+        const query = `INSERT INTO cena_usluge ("vrstaUslugeID","iznos","datumOd") VALUES($1,$2,$3);`;
+        const updatedRows = await db.query(query, [
+          vrstaUslugeID,
+          cena.iznos,
+          new Date(cena.datumOd),
+        ]);
+        if (updatedRows.rowCount > 0)
+          return { message: 'Cena successfully inserted.' };
+      }
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while saving cena!');
+    }
+  }
+
+  async deleteCenuById(cenaUslugeID: Pick<CenaRequestDto, 'cenaUslugeID'>) {
+    try {
+      const query = `DELETE FROM cena_usluge WHERE "cenaUslugeID"=$1;`;
+      await db.query(query, [cenaUslugeID]);
+      return { message: `Cena successfully deleted` };
+    } catch (error) {
+      console.log(error);
+      if (error.code === '23503')
+        return new BadRequestException(
+          `Can't delete cena, its being referenced`,
+        );
+      return new BadRequestException('Error while deleting cena!');
     }
   }
 }
