@@ -324,6 +324,49 @@ export class CommunitiesService {
     }
   }
 
+  async updateVoziloById(vozilo: VoziloRequestDto) {
+    try {
+      const query = `SELECT * FROM vozilo WHERE "registarski_broj" = $1;`;
+      const db_response = await db.query(query, [vozilo.registarski_broj]);
+      let registarski_broj;
+
+      if (db_response.rowCount) {
+        registarski_broj = db_response.rows[0].registarski_broj;
+      }
+
+      if (registarski_broj) {
+        const query = `UPDATE vozilo SET "model"=$1, "marka"=$2, "pogon"=ROW($3,$4), "kilometraza" = $5, "datumistekaregistracije"=$6 WHERE "registarski_broj"=$7;`;
+        const updatedRows = await db.query(query, [
+          vozilo.model,
+          vozilo.marka,
+          vozilo.tip_goriva,
+          vozilo.jacina_motora,
+          vozilo.kilometraza,
+          new Date(vozilo.datumistekaregistracije),
+          vozilo.registarski_broj,
+        ]);
+        if (updatedRows.rowCount > 0)
+          return { message: 'Vozilo successfully saved.' };
+      } else {
+        const query = `INSERT INTO vozilo("registarski_broj", "model", marka, pogon, kilometraza, datumistekaregistracije) VALUES($1,$2,$3,ROW($4,$5),$6,$7);`;
+        const updatedRows = await db.query(query, [
+          vozilo.registarski_broj,
+          vozilo.model,
+          vozilo.marka,
+          vozilo.tip_goriva,
+          vozilo.jacina_motora,
+          vozilo.kilometraza,
+          new Date(vozilo.datumistekaregistracije),
+        ]);
+        if (updatedRows.rowCount > 0)
+          return { message: 'Vozilo successfully saved.' };
+      }
+    } catch (error) {
+      console.log(error);
+      return new BadRequestException('Error while saving vozilo!');
+    }
+  }
+
   async getVoziloByMarka(marka: string) {
     try {
       const query = `SELECT "registarski_broj", model, marka, (pogon).tip_goriva, (pogon).jacina_motora, kilometraza, "datumistekaregistracije" FROM vozilo WHERE marka=$1;`;
@@ -333,6 +376,24 @@ export class CommunitiesService {
     } catch (error) {
       console.log(error);
       return new BadRequestException('Error while getting vozila');
+    }
+  }
+
+  async deleteVoziloById(
+    registarski_broj: Pick<VoziloRequestDto, 'registarski_broj'>,
+  ) {
+    try {
+      const query = `DELETE FROM vozilo WHERE "registarski_broj"=$1;`;
+      const updatedRows = await db.query(query, [registarski_broj]);
+      if (updatedRows.rowCount > 0)
+        return { message: `Vozilo successfully deleted` };
+    } catch (error) {
+      console.log(error);
+      if (error.code === '23503')
+        return new BadRequestException(
+          `Can't delete vozilo, its being referenced`,
+        );
+      return new BadRequestException('Error while deleting vozilo!');
     }
   }
 

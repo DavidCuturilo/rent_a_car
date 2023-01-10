@@ -248,4 +248,17 @@ export class CommunitiesController {
   ) {
     return await this.communitiesService.deleteCenuById(cenaUslugeID);
   }
+
+  @Put('updateVoziloById')
+  async updateVoziloById(@Body() vozilo: VoziloRequestDto) {
+    return await this.communitiesService.updateVoziloById(vozilo);
+  }
+
+  @Delete('deleteVoziloById/:registarski_broj')
+  async deleteVoziloById(
+    @Param('registarski_broj')
+    registarski_broj: Pick<VoziloRequestDto, 'registarski_broj'>,
+  ) {
+    return await this.communitiesService.deleteVoziloById(registarski_broj);
+  }
 }
